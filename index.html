@@ -92,7 +92,75 @@
     pointer-events: none;
   }
 
-  .hero-content { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; }
+  .hero-content { max-width: 900px; margin: 0 auto; position: relative; z-index: 1; display: flex; align-items: center; gap: 3rem; flex-wrap: wrap; }
+
+  /* ── AVATAR GLOBE ── */
+  .hero-avatar {
+    flex-shrink: 0;
+    position: relative;
+    width: 200px; height: 200px;
+  }
+  .avatar-ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid rgba(59,130,246,0.3);
+    animation: spin 12s linear infinite;
+  }
+  .avatar-ring::before {
+    content: '';
+    position: absolute;
+    top: -4px; left: 50%;
+    width: 8px; height: 8px;
+    background: var(--accent2);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+  .avatar-ring2 {
+    position: absolute; inset: 16px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(139,92,246,0.25);
+    animation: spin 8s linear infinite reverse;
+  }
+  .avatar-ring2::before {
+    content: '';
+    position: absolute;
+    bottom: -4px; left: 50%;
+    width: 6px; height: 6px;
+    background: var(--accent3);
+    border-radius: 50%;
+    transform: translateX(-50%);
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .avatar-core {
+    position: absolute;
+    inset: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a2540, #0f1628);
+    border: 2px solid rgba(59,130,246,0.4);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 3.5rem;
+    font-weight: 700;
+    font-family: var(--mono);
+    color: var(--accent);
+    text-shadow: 0 0 30px rgba(59,130,246,0.6);
+    box-shadow: inset 0 0 40px rgba(59,130,246,0.1);
+  }
+  .avatar-dots {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .dot {
+    position: absolute;
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    opacity: 0.6;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+  @keyframes twinkle { 0%,100%{opacity:0.2} 50%{opacity:0.8} }
+
+  .hero-text { flex: 1; min-width: 280px; }
 
   .hero-badge {
     display: inline-flex; align-items: center; gap: 8px;
@@ -496,6 +564,20 @@
   #chat-send:hover { background: #2563eb; }
   #chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
 
+  .quick-btn {
+    background: rgba(59,130,246,0.1);
+    border: 1px solid rgba(59,130,246,0.3);
+    color: var(--accent2);
+    padding: 5px 10px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-family: var(--sans);
+    transition: background 0.2s;
+    white-space: nowrap;
+  }
+  .quick-btn:hover { background: rgba(59,130,246,0.2); }
+
   /* ── FOOTER ── */
   footer {
     text-align: center;
@@ -539,6 +621,20 @@
   <div class="hero-glow"></div>
   <div class="hero-glow2"></div>
   <div class="hero-content">
+    <div class="hero-avatar">
+      <div class="avatar-ring"></div>
+      <div class="avatar-ring2"></div>
+      <div class="avatar-dots">
+        <div class="dot" style="top:10%; left:20%; animation-delay:0s"></div>
+        <div class="dot" style="top:70%; left:8%; animation-delay:0.4s"></div>
+        <div class="dot" style="top:20%; right:12%; animation-delay:0.8s"></div>
+        <div class="dot" style="bottom:12%; right:20%; animation-delay:1.2s"></div>
+        <div class="dot" style="bottom:25%; left:15%; animation-delay:0.6s; background:var(--accent3)"></div>
+        <div class="dot" style="top:45%; right:6%; animation-delay:1.5s; background:var(--accent2)"></div>
+      </div>
+      <div class="avatar-core">A</div>
+    </div>
+    <div class="hero-text">
     <div class="hero-badge">
       <div class="pulse"></div>
       Available for opportunities
@@ -566,6 +662,7 @@
       <a href="mailto:mramit4848@gmail.com" class="btn-primary">✉ Get in touch</a>
       <a href="https://github.com/vipakm" class="btn-ghost" target="_blank">⌥ GitHub</a>
       <a href="https://linkedin.com/in/mr-amitkumar" class="btn-ghost" target="_blank">↗ LinkedIn</a>
+    </div>
     </div>
   </div>
 </section>
@@ -800,11 +897,8 @@
     <button class="chat-close" onclick="toggleChat()">✕</button>
   </div>
   <div class="chat-messages" id="chat-messages">
-    <div class="chat-msg bot">
-      👋 Hi! I'm an AI assistant who knows everything about Amit Kumar. Ask me about his skills, experience, projects, or anything else!
-    </div>
-    <div class="chat-msg bot">
-      Try: <em>"What's Amit's experience with Docker?"</em> or <em>"Tell me about his work at Indian Railways"</em>
+    <div class="chat-msg bot" style="white-space:pre-line">
+      👋 Hi! I'm Amit's portfolio assistant. I can answer questions about his skills, experience, projects, and more!
     </div>
   </div>
   <div class="chat-footer">
@@ -820,44 +914,127 @@
   }, { threshold: 0.1 });
   document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
 
-  // Chatbot state
   let chatOpen = false;
-  const SYSTEM_PROMPT = `You are an AI assistant embedded in Amit Kumar's personal portfolio website. You represent Amit and answer questions about him in a friendly, professional manner.
 
-Here is Amit's complete profile:
+  // ── RULE-BASED KNOWLEDGE BASE ──
+  const kb = [
+    {
+      keys: ['hi','hello','hey','namaste','hlo','hii'],
+      reply: '👋 Hello! I\'m Amit\'s portfolio assistant. Ask me anything about his skills, experience, projects, education, or contact info!'
+    },
+    {
+      keys: ['who','about','introduce','yourself','amit','tell me'],
+      reply: '👨‍💻 Amit Kumar is a Backend Developer with 3+ years of experience in the .NET ecosystem. He specializes in ASP.NET Core, RESTful APIs, Docker, and Cloud (Azure/AWS). Currently working at Agdova Technologies in Faridabad.'
+    },
+    {
+      keys: ['skill','tech','technology','know','expertise','stack','language'],
+      reply: '🛠️ Amit\'s skills:\n• Core: C# (.NET 6/8), ASP.NET Core, Web API, MVC, LINQ, EF Core\n• Cloud/DevOps: Azure, AWS, Docker, CI/CD, IIS, GitHub\n• DB/Real-Time: SQL Server, MySQL, Redis, SignalR, MQTT\n• Architecture: SOLID, Microservices, Repository Pattern, RBAC, DI'
+    },
+    {
+      keys: ['experience','work','job','company','career','history'],
+      reply: '💼 Work Experience:\n\n1️⃣ Agdova Technologies (Jun 2025–Present)\n   Dotnet Developer — reduced latency by 30%, built Azure-ready APIs with RBAC\n\n2️⃣ Embedded Design Services (Oct 2022–May 2025)\n   Web Developer — built Indian Railways RDPM, financial ERP, GPS tracking system'
+    },
+    {
+      keys: ['agdova','current','present','now','latest'],
+      reply: '🏢 Currently at Agdova Technologies (Jun 2025–Present) as a Dotnet Developer.\n• Reduced data retrieval latency by 30%\n• Built Azure-ready REST APIs with RBAC & custom auth middleware\n• Reduced API payload sizes by 20% using DTO + AutoMapper'
+    },
+    {
+      keys: ['embedded','edsi','previous','railway','rdpm','railways','indian'],
+      reply: '🚂 At Embedded Design Services (Oct 2022–May 2025):\n• Built REST APIs for Indian Railways processing 10k+ data points/min via MQTT\n• Increased ERP data accuracy by 45%\n• Modernized GPS tracking system with 25% better UI + AWS cloud\n• Achieved 2x concurrent users with Docker + async/await'
+    },
+    {
+      keys: ['project','projects','built','created','work on','portfolio'],
+      reply: '🚀 Key Projects:\n\n1️⃣ Shri Mahaluxmi Mandir Trust CMS\n   ASP.NET MVC + SQL — reduced donation workload 70%, traffic up 50%\n\n2️⃣ Indian Railways RDPM\n   Real-time telemetry with MQTT + SignalR — 10k+ data points/min\n\n3️⃣ GPS Vehicle Tracking\n   Modernized legacy system with Docker + AWS'
+    },
+    {
+      keys: ['mandir','temple','cms','donation'],
+      reply: '🛕 Shri Mahaluxmi Mandir Trust CMS (Jan–Oct 2023):\n• Built with ASP.NET MVC, C#, Bootstrap, SQL Server\n• Integrated Payment Gateways for donations\n• Reduced manual donation entry workload by 70%\n• Automated image processing → 50% increase in site traffic'
+    },
+    {
+      keys: ['gps','vehicle','tracking','location'],
+      reply: '📡 GPS Vehicle Tracking Platform:\n• Modernized a legacy GPS system using ASP.NET Core\n• 25% improvement in UI responsiveness\n• Deployed on AWS Cloud with Docker containerization\n• 2x more concurrent users on same hardware'
+    },
+    {
+      keys: ['docker','container','containerization'],
+      reply: '🐳 Docker: Amit uses Docker for containerization to improve resource utilization. At his previous job, Docker helped the system handle 2x more concurrent users on existing hardware. He also ensures AWS Cloud compatibility with containerized apps.'
+    },
+    {
+      keys: ['azure','cloud','aws','devops','ci','cd','deploy'],
+      reply: '☁️ Cloud & DevOps:\n• Azure: Built Azure-ready RESTful services with custom middleware\n• AWS: Deployed GPS tracking and other apps on AWS\n• Docker: Containerization for scalability\n• CI/CD pipelines, IIS, GitHub, Bitbucket'
+    },
+    {
+      keys: ['dotnet','.net','csharp','c#','asp','aspnet','core'],
+      reply: '⚙️ .NET Expertise:\n• C# with .NET 6 and .NET 8\n• ASP.NET Core Web API & MVC\n• Entity Framework Core (ORM)\n• LINQ for data querying\n• Async/await for high-performance async programming'
+    },
+    {
+      keys: ['sql','database','db','mysql','redis','query','stored procedure'],
+      reply: '🗄️ Database Skills:\n• SQL Server (T-SQL) — stored procedures, indexing, optimization\n• MySQL for relational data\n• Redis for caching\n• Reduced query latency by 30% via optimized stored procedures & indexing\n• ORM with Entity Framework Core'
+    },
+    {
+      keys: ['mqtt','signalr','realtime','real-time','websocket'],
+      reply: '⚡ Real-Time Tech:\n• MQTT Protocol — used for Indian Railways telemetry (10k+ data points/min)\n• SignalR (WebSockets) — real-time dashboards and live data streaming\n• Async programming for high-concurrency handling'
+    },
+    {
+      keys: ['education','study','degree','college','university','qualification','mba','btech','b.tech'],
+      reply: '🎓 Education:\n\n1️⃣ MBA – Business Analytics\n   Kurukshetra University (2024–2026)\n   CGPA: 9.0/10\n\n2️⃣ B.Tech – Computer Science Engineering\n   J.C. Bose University / YMCA (2019–2023)\n   CGPA: 7.7/10'
+    },
+    {
+      keys: ['kurukshetra','mba','business','analytics','masters'],
+      reply: '📚 Amit is pursuing an MBA in Business Analytics from Kurukshetra University (2024–2026) with an impressive CGPA of 9.0/10.'
+    },
+    {
+      keys: ['ymca','bose','btech','bachelor','cse','computer science'],
+      reply: '🎓 Amit completed his B.Tech in Computer Science Engineering from J.C. Bose University (YMCA), Faridabad (2019–2023) with a CGPA of 7.7/10.'
+    },
+    {
+      keys: ['contact','email','phone','number','mobile','reach','connect','call','mail','hire','available'],
+      reply: '📬 Contact Amit:\n• 📧 Email: mramit4848@gmail.com\n• 📞 Phone: +91 8178796716\n• 💼 LinkedIn: linkedin.com/in/mr-amitkumar\n• 🐙 GitHub: github.com/vipakm\n• 📍 Location: Faridabad, India'
+    },
+    {
+      keys: ['github','code','repo','repository','open source'],
+      reply: '🐙 Amit\'s GitHub: github.com/vipakm\nCheck out his code, projects, and contributions there!'
+    },
+    {
+      keys: ['linkedin','profile','social'],
+      reply: '💼 Amit\'s LinkedIn: linkedin.com/in/mr-amitkumar\nConnect with him for professional networking and opportunities!'
+    },
+    {
+      keys: ['location','city','where','faridabad','india','based'],
+      reply: '📍 Amit is based in Faridabad, India.'
+    },
+    {
+      keys: ['solid','architecture','pattern','microservice','repository','dependency','rbac','injection'],
+      reply: '🏗️ Architecture Skills:\n• SOLID Principles — clean, maintainable code\n• Microservices architecture\n• Dependency Injection\n• Repository Pattern\n• RBAC (Role-Based Access Control)\n• Clean Architecture approach'
+    },
+    {
+      keys: ['automap','automapper','dto','payload'],
+      reply: '🔄 Amit uses DTO (Data Transfer Object) patterns with AutoMapper to:\n• Reduce API payload sizes by 20%\n• Improve mobile client responsiveness\n• Keep API responses clean and decoupled from DB models'
+    },
+    {
+      keys: ['year','experience','how long','how many'],
+      reply: '📅 Amit has 3+ years of professional experience in backend development, starting from October 2022 at Embedded Design Services and currently working at Agdova Technologies since June 2025.'
+    },
+    {
+      keys: ['achievement','result','impact','improve','reduce','increase','performance'],
+      reply: '🏆 Key Achievements:\n• ⬇️ 30% reduction in data retrieval latency\n• 🔒 100% security coverage with RBAC middleware\n• ⬇️ 20% smaller API payloads\n• ⚡ 10k+ MQTT data points/min for Railways\n• ⬆️ 45% better ERP data accuracy\n• 🚀 2x concurrent users with Docker\n• ⬆️ 50% increase in temple site traffic'
+    },
+    {
+      keys: ['thank','thanks','great','awesome','nice','good','cool','perfect'],
+      reply: '😊 Thank you! Feel free to ask anything else about Amit, or contact him directly at mramit4848@gmail.com'
+    },
+    {
+      keys: ['bye','goodbye','see you','cya','exit'],
+      reply: '👋 Goodbye! Feel free to come back anytime. You can also reach Amit at mramit4848@gmail.com'
+    }
+  ];
 
-NAME: Amit Kumar
-CONTACT: +91 8178796716 | mramit4848@gmail.com | linkedin.com/in/mr-amitkumar | github.com/vipakm
-TITLE: Backend Developer | .NET Core | Web API | Cloud Solutions
-
-SUMMARY: Result-driven Backend Developer with 3+ years of experience in the .NET ecosystem. Expert in architecting RESTful APIs, Containerization (Docker), and Cloud Solutions (Azure/AWS). Focused on delivering high-performance solutions using SOLID principles, Clean Architecture, and collaborative Development methodologies.
-
-CURRENT EXPERIENCE:
-- Company: Agdova Technologies (Jun 2025 – Present)
-- Role: Dotnet Developer, Faridabad India
-- Achievements: Reduced data retrieval latency by 30% via optimized SQL stored procedures; Built Azure-ready RESTful services with RBAC and dynamic header-based authentication increasing security by 100%; Used DTO patterns and AutoMapper reducing API payload sizes by 20%
-
-PREVIOUS EXPERIENCE:
-- Company: Embedded Design Services India Pvt Ltd (Oct 2022 – May 2025)
-- Role: Web Developer
-- Achievements: Built REST APIs for Indian Railways (RDPM) using MQTT listeners processing 10k+ telemetry data points/min; Developed financial ERP modules increasing data accuracy by 45%; Modernized legacy GPS tracking system with 25% UI improvement and AWS compatibility; Used Docker and async/await to achieve 2x concurrent user capacity
-
-PROJECTS:
-1. Shri Mahaluxmi Mandir Trust CMS (Jan 2023 – Oct 2023) - ASP.NET MVC, C#, Bootstrap, SQL - Reduced manual donation workload by 70%, increased site traffic by 50%
-2. Indian Railways RDPM - Real-time telemetry processing with MQTT
-3. GPS Vehicle Tracking Platform - Legacy modernization with Docker and AWS
-
-EDUCATION:
-1. Master of Business Administration (Business Analytics) - Kurukshetra University - 2024-2026 - CGPA: 9.0/10
-2. Bachelor of Technology (Computer Science Engineering) - J.C. Bose University (YMCA) - 2019-2023 - CGPA: 7.7/10
-
-SKILLS:
-- Core Tech: C# (.NET 6/8), ASP.NET Core, Web API, MVC, LINQ, Entity Framework Core
-- Cloud/DevOps: AWS, Azure, Docker, CI/CD, IIS, GitHub, Bitbucket
-- Real-Time/DB: SignalR (WebSockets), MQTT Protocol, SQL Server (T-SQL), MySQL, Redis
-- Architecture: SOLID Principles, Microservices, Dependency Injection, Repository Pattern, RBAC
-
-Answer questions about Amit concisely and positively. If asked about something not in the profile, say you don't have that specific info but suggest contacting Amit directly. Keep responses under 100 words unless a detailed answer is genuinely needed.`;
+  function getBotReply(input) {
+    const q = input.toLowerCase().trim();
+    for (const item of kb) {
+      if (item.keys.some(k => q.includes(k))) return item.reply;
+    }
+    return "🤔 I'm not sure about that. Try asking about Amit's skills, experience, projects, education, or contact info!\n\nOr reach him directly: mramit4848@gmail.com";
+  }
 
   function toggleChat() {
     chatOpen = !chatOpen;
@@ -868,11 +1045,11 @@ Answer questions about Amit concisely and positively. If asked about something n
   function addMsg(text, role) {
     const div = document.createElement('div');
     div.className = 'chat-msg ' + role;
+    div.style.whiteSpace = 'pre-line';
     div.textContent = text;
     const msgs = document.getElementById('chat-messages');
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
-    return div;
   }
 
   function showTyping() {
@@ -880,9 +1057,7 @@ Answer questions about Amit concisely and positively. If asked about something n
     div.className = 'chat-typing';
     div.innerHTML = '<span></span><span></span><span></span>';
     div.id = 'typing-indicator';
-    const msgs = document.getElementById('chat-messages');
-    msgs.appendChild(div);
-    msgs.scrollTop = msgs.scrollHeight;
+    document.getElementById('chat-messages').appendChild(div);
   }
 
   function removeTyping() {
@@ -890,38 +1065,22 @@ Answer questions about Amit concisely and positively. If asked about something n
     if (t) t.remove();
   }
 
-  async function sendChat() {
+  function quickAsk(text) {
+    document.getElementById('chat-input').value = text;
+    sendChat();
+  }
+
+  function sendChat() {
     const input = document.getElementById('chat-input');
-    const sendBtn = document.getElementById('chat-send');
     const text = input.value.trim();
     if (!text) return;
-
     addMsg(text, 'user');
     input.value = '';
-    sendBtn.disabled = true;
     showTyping();
-
-    try {
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          system: SYSTEM_PROMPT,
-          messages: [{ role: 'user', content: text }]
-        })
-      });
-      const data = await res.json();
+    setTimeout(() => {
       removeTyping();
-      const reply = data.content?.find(b => b.type === 'text')?.text || 'Sorry, I had trouble responding. Please try again.';
-      addMsg(reply, 'bot');
-    } catch (e) {
-      removeTyping();
-      addMsg('Network error. Please check your connection and try again.', 'bot');
-    }
-    sendBtn.disabled = false;
-    document.getElementById('chat-messages').scrollTop = 999999;
+      addMsg(getBotReply(text), 'bot');
+    }, 600);
   }
 </script>
 </body>
